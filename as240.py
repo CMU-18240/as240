@@ -1,6 +1,7 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 
 # Change Log:
+# 3.0.1 - Changed shebang to be the generic python3
 # 3.0 - Updated to RISC240, wan 30 Mar 2019
 # 2.11 - Updated .DW to take a label or a hex operand (nryan)
 # 2.1 - Updated print formats for list file to allow 8 character labels

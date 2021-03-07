@@ -24,7 +24,8 @@ whole (i.e. both student and staff branches).
 
 ## TODOs
 ### Overall TODOs
-- Write different READMEs for both staff and student branches
+- Decide if I really need student and staff brnches.
+- Write different READMEs for both staff and student branches, if necessary
 - Update argument parsing to use ArgParser
 
 ### Staff TODOs

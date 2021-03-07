@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # Change Log:
-# 3.0.1 - Changed shebang to be the generic python3
 # 3.0 - Updated to RISC240, wan 30 Mar 2019
 # 2.11 - Updated .DW to take a label or a hex operand (nryan)
 # 2.1 - Updated print formats for list file to allow 8 character labels
@@ -532,7 +531,7 @@ class AsmLine:
                 label_or_space = " "
 
             formatted_operands = self.__format_operands()
-
+            
             ret_val = FORMAT_STRING % (self.mem_address,
                                        self.word1,
                                        label_or_space,
@@ -560,7 +559,7 @@ class AsmLine:
             return ''
         if self.is_pseudo_operation:
             return '{}'.format(self.operand1)
-
+            
         # Not a Pseudo Op, so can look this up in OpcodeInfo
         num_operands = OpcodeInfo.num_operands(self.opcode)
         if num_operands <= 1:
@@ -571,10 +570,10 @@ class AsmLine:
             return '{}'.format(self.operand1)
         if num_operands == 2:
             return '{} {}'.format(self.operand1, self.operand2)
-
+        
         return '{} {} {}'.format(self.operand1, self.operand2, self.operand3)
-
-
+         
+            
     def mem_locs(self):
         """ Return a list of (addr, data) tuples for defined memory
             locations.
@@ -812,7 +811,7 @@ class AsmLine:
                                   "single operand, but you provided three (" +
                                   self.operand1 + ", " + self.operand2 +
                                   " and " + self.operand3 +
-                                  ")")
+                                  ")")        
             elif self.operand2:
                 raise SyntaxError(self.line_number,
                                   "A .EQU pseudo-operation requires a " +
@@ -838,7 +837,7 @@ class AsmLine:
                                   "or one operands, but you provided three (" +
                                   self.operand1 + ", " + self.operand2 +
                                   " and " + self.operand3 +
-                                  ")")
+                                  ")")        
             if self.operand2:
                 raise SyntaxError(self.line_number,
                                   "A .DW pseudo-operation requires zero " +
@@ -868,7 +867,7 @@ class AsmLine:
                                   "single operand, but you provided three (" +
                                   self.operand1 + ", " + self.operand2 +
                                   " and " + self.operand3 +
-                                  ")")
+                                  ")")        
             if self.operand2:
                 raise SyntaxError(self.line_number,
                                   "A .ORG pseudo-operation requires a " +
@@ -1123,8 +1122,57 @@ def parse_command_line():
 
     Do all command line processing.  Read the ASM file.
     Returns:
-        asm_data : A string with the entire contents of the assembly file
-        file_list, file_mem, file_mif, file_sym : file objects for the output files
+        file_asm, file_list, file_mem, file_mif, file_sym : file objects for the output files
+    """
+    import ArgumentParser
+    program_version = "3.0"  # Perl version went to 1.5 or so
+                             # P18240 version went to 2.11
+    parser = argparse.ArgumentParser(description=f'A RISC240 assembler [version {program_version}]')
+
+    parser.add_option(["-m", "--mfile"],
+                      dest="mfile",
+                      metavar = "MEM_FILE",
+                      help="Use the specified filename for the simulation " +
+                            "memory image. The normal default is memory.hex."
+                            "Note: no extension will be added",
+                      default=None)
+    parser.add_option("-l", "--listfile",
+                      dest="lfile",
+                      metavar = "LIST_FILE",
+                      help="Use the specified filename for the list file. " +
+                           "The default is <your ASM file>.list.",
+                      default=None)
+    parser.add_option("-s", "--symbolfile", "--symfile",
+                      dest="sfile",
+                      metavar = "SYM_FILE",
+                      help="Output symbol table to SYM_FILE")
+    parser.add_option('--miffilename',
+                      dest='mif_file',
+                      metavar = 'MIF_FILE',
+                      help = "Use the specified filename for the synthesis " +
+                             "memory image.  The normal default is memory.mif."
+                      default=None)
+    parser.add_option("-o",
+                      dest="output_to_stdout",
+                      action="store_true",
+                      help="list file will be output to STDOUT. " +
+                           "No other files created, unless requested from the " +
+                           "command line.",
+                      default=False)
+    parser.add_option("-v",
+                      dest="version",
+                      action="store_true",
+                      help="Display version number.",
+                      default=False)
+    
+    
+    
+def parse_command_line_optparser():
+    """Deep and thorough parsing of command line options.
+
+    Do all command line processing.  Read the ASM file.
+    Returns:
+        file_asm, file_list, file_mem, file_mif, file_sym : file objects for the output files
     """
     usage = "usage: %prog [options] ASM_FILE"
     program_version = "3.0"  # Perl version went to 1.5 or so
@@ -1162,6 +1210,7 @@ def parse_command_line():
 
     (options, args) = parser.parse_args()
     if len(args) > 1:
+        print(", ".join(args))
         parser.error("incorrect number of arguments")
     if (len(args) == 0) and not (options.output_to_stdout):
         parser.error("incorrect number of arguments")
@@ -1179,7 +1228,7 @@ def parse_command_line():
     try:
         file_asm = open(options.afile, 'r')
     except IOError:
-        parser.error("ASM_FILE does not exist")
+        parser.error(f'ASM_FILE does not exist: {options.afile}')
 
     if (options.output_to_stdout):
         file_list = sys.stdout
@@ -1208,7 +1257,7 @@ def parse_command_line():
 
 
 def create_mem_file(mem_file, locs):
-    """ Create the memory file (traditionally memory.hex) from a list of
+    """ Create the memory file (traditionally memory.hex) from a list of 
         address, data tuples.  Note that the locs are word values."""
     sorter = lambda x : x[0]
     locs = sorted(locs, key=sorter)
@@ -1222,7 +1271,7 @@ def create_mem_file(mem_file, locs):
         curr_addr += 2
 
 def create_mif_file(mif_file, locs):
-    """ Create the memory file for synthesis from a list of
+    """ Create the memory file for synthesis from a list of 
         address, data tuples.  """
     sorter = lambda x : x[0]
     locs = sorted(locs, key=sorter)
